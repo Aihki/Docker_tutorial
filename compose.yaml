@@ -8,16 +8,15 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 
+
 services:
   server:
     build:
       context: .
     environment:
-      NODE_ENV: production
-      develop: true
-      watch: true
-      MONGO_URI: ${DB_URL}
-      HOST: 0.0.0.0
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      MONGO_URI: ${MONGO_URI}
     ports:
       - '3000:3000'
     volumes:
@@ -25,6 +24,9 @@ services:
       - ./backend/package.json:/usr/local/app/package.json
     env_file:
       - .env
+    depends_on:
+      mongo:
+        condition: service_healthy
 
   mongo:
     image: mongo:latest
@@ -35,20 +37,31 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ATLAS_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ATLAS_PASSWORD}
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongo-express:
     image: mongo-express:latest
     ports:
       - '8081:8081'
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ATLAS_USERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ATLAS_PASSWORD}
       ME_CONFIG_MONGODB_SERVER: mongo
+    env_file:
+      - .env
 
 volumes:
   mongo-data:
+
 
       
 # The commented out section below is an example of how to define a PostgreSQL
