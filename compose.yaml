@@ -8,56 +8,49 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 
-
-
 services:
   server:
     build:
       context: .
     environment:
-      NODE_ENV: ${NODE_ENV}
-      PORT: 3000
-      MONGO_URI: ${DB_URL}
+      NODE_ENV: production
+      PORT: 3000  
     ports:
       - '3000:3000'
-    volumes:
-      - ./src:/usr/local/app/src
-      - ./backend/package.json:/usr/local/app/package.json
     env_file:
       - .env
     depends_on:
-      - mongo
+      - mongo  
 
   mongo:
     image: mongo:latest
     ports:
-      - '27017:27017'
+      - "27017:27017"
     volumes:
       - mongo-data:/data/db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ATLAS_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ATLAS_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     env_file:
       - .env
 
   mongo-express:
     image: mongo-express:latest
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD}
+      ME_CONFIG_MONGODB_SERVER: mongo
     ports:
-      - '8081:8081'
+      - "8081:8081"
     depends_on:
       - mongo
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ATLAS_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ATLAS_PASSWORD}
-      ME_CONFIG_MONGODB_SERVER: mongo
-      ME_CONFIG_SITE_PORT: 8081
-    env_file:
-      - .env
 
 volumes:
   mongo-data:
 
-      
+  
+
+
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
 # start the database before your application. The `db-data` volume persists the
