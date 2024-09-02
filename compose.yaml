@@ -9,14 +9,15 @@
 # https://github.com/docker/awesome-compose
 
 
+
 services:
   server:
     build:
       context: .
     environment:
       NODE_ENV: ${NODE_ENV}
-      PORT: ${PORT}
-      MONGO_URI: ${MONGO_URI}
+      PORT: 3000
+      MONGO_URI: ${DB_URL}
     ports:
       - '3000:3000'
     volumes:
@@ -25,8 +26,7 @@ services:
     env_file:
       - .env
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongo
 
   mongo:
     image: mongo:latest
@@ -39,29 +39,23 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ATLAS_PASSWORD}
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   mongo-express:
     image: mongo-express:latest
     ports:
       - '8081:8081'
     depends_on:
-      mongo:
-        condition: service_healthy
+      - mongo
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ATLAS_USERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ATLAS_PASSWORD}
       ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_SITE_PORT: 8081
     env_file:
       - .env
 
 volumes:
   mongo-data:
-
 
       
 # The commented out section below is an example of how to define a PostgreSQL
